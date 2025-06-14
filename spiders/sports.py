@@ -12,8 +12,9 @@ class SportsSpider(scrapy.Spider):
         for url in self.start_urls:
             yield scrapy.Request(
                 url,
-                meta={"playwright": True, "playwright_include_page": True},
-                callback=self.parse
+                meta={"playwright": True,          # Enables Playwright rendering
+                       "playwright_include_page": True}, # Gives access to the page object in the response
+                callback=self.parse       # Calls the async parser method below
             )
 
     async def parse(self, response):
@@ -21,10 +22,11 @@ class SportsSpider(scrapy.Spider):
         await page.wait_for_selector("div.sc-9b40ed01-5")
         await page.close()
 
+        # Select top 5 event containers
         events = response.css("div.sc-9b40ed01-5")[:5]
         for event in events:
             link_elem = event.xpath("../../..")
-            event_url = response.urljoin(link_elem.css("::attr(href)").get())
+            # event_url = response.urljoin(link_elem.css("::attr(href)").get())
 
             title = event.css("p.sc-9b40ed01-6::text").get()
             details = event.css("p.sc-9b40ed01-8::text").getall()
@@ -38,5 +40,5 @@ class SportsSpider(scrapy.Spider):
                 "datetime": datetime,
                 "location": location,
                 "image": image,
-                "event_url": event_url,
+                # "event_url": event_url,
             }
